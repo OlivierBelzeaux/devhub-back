@@ -77,6 +77,28 @@ docker compose --env-file .env.production -f compose.production.yaml down
 
 Ne jamais versionner `.env` ou `.env.production`. En hébergement, fournir ces valeurs par le gestionnaire de secrets de la plateforme.
 
+## Déploiement gratuit : Neon et Render
+
+Pour ce projet personnel, utiliser Neon pour PostgreSQL et Render pour l’API évite la limite d’expiration de 30 jours de la base PostgreSQL gratuite de Render.
+
+Les variables `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD` et `APP_PORT` du fichier `.env.production.example` servent exclusivement au Compose de production du dépôt. Elles ne sont pas utilisées par un service Render relié à Neon.
+
+1. Créer un projet PostgreSQL Neon dans une région européenne et relever l’hôte, la base, l’utilisateur et le mot de passe.
+2. Créer un Blueprint Render depuis ce dépôt : le fichier [render.yaml](render.yaml) configure le service Docker, le plan gratuit et le contrôle de santé `/actuator/health`.
+3. Renseigner les variables demandées par le Blueprint :
+
+   ```text
+   DB_URL=jdbc:postgresql://<hôte-neon>/<base>?sslmode=require
+   DB_USERNAME=<utilisateur-neon>
+   DB_PASSWORD=<mot-de-passe-neon>
+   JWT_SECRET=<secret-aleatoire-d-au-moins-32-caracteres>
+   ADMIN_EMAIL=<adresse-de-connexion>
+   ADMIN_PASSWORD=<mot-de-passe-administrateur>
+   CORS_ALLOWED_ORIGINS=https://<projet>.pages.dev
+   ```
+
+Render fournit la variable `PORT`, utilisée automatiquement par l’application. Une instance gratuite se met en veille après 15 minutes sans requête : le premier appel suivant peut prendre environ une minute.
+
 ## Tests
 
 ```bash
